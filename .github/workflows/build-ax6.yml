@@ -1,0 +1,129 @@
+name: Build AX6 LiBwrt Firmware
+
+on:
+  workflow_dispatch: # 允许手动点击按钮触发编译
+
+env:
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    
+    steps:
+    - name: 1. 检出仓库代码
+      uses: actions/checkout@v4
+
+    - name: 2. 初始化编译环境
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost
+        sudo -E apt-get -qq update
+        sudo -E apt-get -qq install build-essential clang flex bison g++ gawk gcc-multilib g++-multilib gettext git libncurses5-dev libssl-dev python3-distutils rsync unzip zlib1g-dev file wget
+        sudo -E apt-get -qq autoremove --purge
+        sudo -E apt-get -qq clean
+        sudo timedatectl set-timezone "$TZ"
+
+    - name: 3. 更新与安装插件包 (Feeds)
+      run: |
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+
+    - name: 4. 写入红米 AX6 与 NSS 满血配置
+      run: |
+        rm -f .config
+        # 直接将你的配置写入，省去上传文件的麻烦
+        cat <<EOF > .config
+        # --- 基础机型配置 ---
+        CONFIG_TARGET_qualcommax=y
+        CONFIG_TARGET_qualcommax_ipq807x=y
+        CONFIG_TARGET_MULTI_PROFILE=y
+        CONFIG_TARGET_ALL_PROFILES=n
+        CONFIG_TARGET_PER_DEVICE_ROOTFS=y
+        CONFIG_TARGET_ROOTFS_INITRAMFS=n
+        CONFIG_TARGET_qualcommax_ipq807x_DEVICE_redmi_ax6=y
+        CONFIG_TARGET_qualcommax_ipq807x_DEVICE_redmi_ax6-stock=y
+
+        # --- 基础内核与工具 ---
+        CONFIG_PACKAGE_kmod-netlink-diag=y
+        CONFIG_PACKAGE_kmod-inet-diag=y
+        CONFIG_PACKAGE_kmod-tls=y
+        CONFIG_PACKAGE_kmod-tun=y
+        CONFIG_PACKAGE_htop=y
+        CONFIG_PACKAGE_openssh-sftp-server=y
+        CONFIG_PACKAGE_tcpdump=y
+        CONFIG_PACKAGE_openssl-util=y
+        CONFIG_PACKAGE_qrencode=y
+        CONFIG_PACKAGE_mii-tool=y
+        CONFIG_PACKAGE_zram-swap=y
+        CONFIG_PACKAGE_earlyoom=y
+
+        # --- LuCI 与 代理插件 ---
+        CONFIG_PACKAGE_luci-app-autoreboot=y
+        CONFIG_PACKAGE_luci-i18n-autoreboot-zh-cn=y
+        CONFIG_PACKAGE_luci-app-sqm=y
+        CONFIG_PACKAGE_luci-i18n-sqm-zh-cn=y
+        CONFIG_PACKAGE_luci-app-openclash=y
+
+        # --- 禁用无线 Wi-Fi (节省内存) ---
+        CONFIG_PACKAGE_kmod-ath11k=n
+        CONFIG_PACKAGE_kmod-ath11k-ahb=n
+        CONFIG_PACKAGE_kmod-ath11k-pci=n
+        CONFIG_PACKAGE_ath11k-firmware-ipq8074=n
+        CONFIG_PACKAGE_ath11k-firmware-qca9074=n
+        CONFIG_PACKAGE_kmod-ath10k=n
+        CONFIG_PACKAGE_kmod-ath10k-smallbuffers=n
+        CONFIG_PACKAGE_ath10k-firmware-qca9887=n
+        CONFIG_PACKAGE_wpad-openssl=n
+        CONFIG_PACKAGE_wpad-basic=n
+        CONFIG_PACKAGE_wpad-mini=n
+        CONFIG_PACKAGE_hostapd-common=n
+        CONFIG_PACKAGE_iw=n
+
+        # --- 编译错误修复 (绕过 GCC 14 严格检查) ---
+        CONFIG_PKG_FORTIFY_SOURCE_NONE=y
+        CONFIG_EXTRA_OPTIMIZATION="-fno-caller-saves -fno-plt -Wno-error=format-nonliteral"
+
+        # --- NSS 满血硬件加速配置 ---
+        CONFIG_IPQ_MEM_PROFILE_256=y
+        CONFIG_NSS_MEM_PROFILE_HIGH=y
+        CONFIG_NSS_FIRMWARE_VERSION_11_4=y
+        CONFIG_PACKAGE_sqm-scripts-nss=y
+        CONFIG_PACKAGE_kmod-qca-mcs=y
+        CONFIG_KERNEL_SKB_RECYCLER=y
+        CONFIG_KERNEL_SKB_RECYCLER_MULTI_CPU=y
+        CONFIG_PACKAGE_kmod-qca-nss-drv-igs=y
+        CONFIG_PACKAGE_kmod-qca-nss-drv-l2tpv2=y
+        CONFIG_PACKAGE_kmod-qca-nss-drv-lag-mgr=y
+        CONFIG_PACKAGE_kmod-qca-nss-drv-pppoe=y
+        CONFIG_PACKAGE_kmod-qca-nss-drv-pptp=y
+        EOF
+        
+        # 让 OpenWrt 自动补全缺失的依赖关系
+        make defconfig
+
+    - name: 5. 预下载编译依赖
+      run: |
+        make download -j8
+        find dl -size -1024c -exec ls -l {} \;
+        find dl -size -1024c -exec rm -f {} \;
+
+    - name: 6. 开始编译固件 (大约需要 2-3 小时)
+      run: |
+        echo -e "开始多线程编译..."
+        make -j$(nproc) || make -j1 V=s
+
+    - name: 7. 整理编译产物
+      if: success()
+      run: |
+        cd bin/targets/qualcommax/ipq807x/
+        rm -rf packages
+        echo "FIRMWARE_DIR=$PWD" >> $GITHUB_ENV
+
+    - name: 8. 上传固件供下载
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: LiBwrt_AX6_NSS_Firmware
+        path: ${{ env.FIRMWARE_DIR }}/*
