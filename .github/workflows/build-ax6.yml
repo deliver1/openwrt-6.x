@@ -60,7 +60,8 @@ jobs:
         CONFIG_PACKAGE_mii-tool=y
         CONFIG_PACKAGE_zram-swap=y
         CONFIG_PACKAGE_earlyoom=y
-
+        CONFIG_PACKAGE_luci-i18n-base-zh-cn=y
+        
         # --- LuCI 与 代理插件 (Nikki) ---
         CONFIG_PACKAGE_luci-app-autoreboot=y
         CONFIG_PACKAGE_luci-i18n-autoreboot-zh-cn=y
