@@ -1,4 +1,4 @@
-name: Build AX6 LiBwrt with Nikki
+name: Build AX6 LiBwrt (Fork Version)
 
 on:
   workflow_dispatch: # 允许手动触发
@@ -11,8 +11,9 @@ jobs:
     runs-on: ubuntu-22.04
     
     steps:
-    - name: 1. 检出仓库代码
+    - name: 1. 检出当前仓库代码
       uses: actions/checkout@v4
+      # 因为是 Fork 仓库，这一步会直接拉取你仓库里的 OpenWrt 源码
 
     - name: 2. 初始化编译环境
       env:
@@ -27,6 +28,7 @@ jobs:
 
     - name: 3. 更新与安装插件包 (包含 Nikki 官方源)
       run: |
+        # 直接在当前源码目录操作
         echo "src-git nikki https://github.com/nikkinikki-org/OpenWrt-nikki.git;main" >> feeds.conf.default
         ./scripts/feeds update -a
         ./scripts/feeds install -a
@@ -102,7 +104,6 @@ jobs:
         CONFIG_PACKAGE_kmod-qca-nss-drv-pptp=y
         EOF
         
-        # 自动补全缺失的依赖关系
         make defconfig
 
     - name: 5. 预下载编译依赖
@@ -140,7 +141,7 @@ jobs:
       if: success()
       with:
         tag_name: ${{ env.RELEASE_TAG }}
-        name: LiBwrt AX6 满血版带Nikki ${{ env.RELEASE_TAG }}
+        name: LiBwrt AX6 (Fork版) ${{ env.RELEASE_TAG }}
         files: ${{ env.FIRMWARE_DIR }}/*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
