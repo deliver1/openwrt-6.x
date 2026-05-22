@@ -228,7 +228,7 @@ define Device/acer_predator-w6x-stock
   DEVICE_DTS_LOADADDR := 0x47000000
   KERNEL_IN_UBI := 1
   UBOOTENV_IN_UBI := 1
-  DEVICE_PACKAGES := kmod-usb3 kmod-leds-ws2812b kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware
+  DEVICE_PACKAGES := kmod-usb3 kmod-leds-ws2812b kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware automount
   IMAGES := sysupgrade.bin
   KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
   KERNEL_INITRAMFS := kernel-bin | lzma | \
@@ -242,7 +242,7 @@ define Device/acer_predator-w6x-ubootmod
   DEVICE_MODEL := Predator Connect W6x (OpenWrt U-Boot Layout)
   DEVICE_DTS := mt7986a-acer-predator-w6x-ubootmod
   DEVICE_DTS_DIR := ../dts
-  DEVICE_PACKAGES := kmod-usb3 kmod-leds-ws2812b kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware
+  DEVICE_PACKAGES := kmod-usb3 kmod-leds-ws2812b kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware automount
   KERNEL_INITRAMFS_SUFFIX := -recovery.itb
   IMAGES := sysupgrade.itb
   UBINIZE_OPTS := -E 5
@@ -281,7 +281,7 @@ define Device/asiarf_ap7986-003
   DEVICE_MODEL := AP7986 003
   DEVICE_DTS := mt7986a-asiarf-ap7986-003
   DEVICE_DTS_DIR := ../dts
-  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware
+  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware automount
   UBINIZE_OPTS := -E 5
   BLOCKSIZE := 128k
   PAGESIZE := 2048
@@ -490,7 +490,7 @@ define Device/asus_tuf-ax4200q
   DEVICE_MODEL := TUF-AX4200Q
   DEVICE_DTS := mt7986a-asus-tuf-ax4200q
   DEVICE_DTS_DIR := ../dts
-  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware
+  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware automount
   IMAGES := sysupgrade.bin
   KERNEL := kernel-bin | lzma | \
 	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
@@ -764,7 +764,7 @@ define Device/bananapi_bpi-r4-lite
   DEVICE_DTC_FLAGS := --pad 4096
   DEVICE_DTS_DIR := ../dts
   DEVICE_DTS_LOADADDR := 0x4ff00000
-  DEVICE_PACKAGES := kmod-eeprom-at24 kmod-gpio-pca953x kmod-i2c-mux-pca954x \
+  DEVICE_PACKAGES := kmod-eeprom-at24 kmod-gpio-pca953x kmod-i2c-mux-pca954x automount \
 		     kmod-rtc-pcf8563 kmod-sfp kmod-usb3 e2fsprogs mkf2fs mt7987-2p5g-phy-firmware
   BLOCKSIZE := 128k
   PAGESIZE := 2048
@@ -831,7 +831,7 @@ define Device/bazis_ax3000wm
   IMAGE/sysupgrade.itb := append-kernel | \
 	fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | \
 	append-metadata
-  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
+  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware automount
   ARTIFACTS := preloader.bin bl31-uboot.fip
   ARTIFACT/preloader.bin := mt7981-bl2 spim-nand-ddr3
   ARTIFACT/bl31-uboot.fip := mt7981-bl31-uboot bazis-ax3000wm
@@ -1087,11 +1087,32 @@ define Device/comfast_cf-wr632ax-ubootmod
   IMAGE/sysupgrade.itb := append-kernel | \
 	fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | append-metadata
   ARTIFACTS := preloader.bin bl31-uboot.fip
-  ARTIFACT/preloader.bin := mt7981-bl2 spim-nand-ddr3
+  ARTIFACT/preloader.bin := mt7981-bl2 spim-nand-ddr3-1866
   ARTIFACT/bl31-uboot.fip := mt7981-bl31-uboot comfast_cf-wr632ax
   $(call Device/comfast_cf-wr632ax-common)
 endef
 TARGET_DEVICES += comfast_cf-wr632ax-ubootmod
+
+define Device/comfast_cf-xr186
+  DEVICE_VENDOR := COMFAST
+  DEVICE_MODEL := CF-XR186
+  DEVICE_DTS := mt7981b-comfast-cf-xr186
+  DEVICE_DTS_DIR := ../dts
+  SUPPORTED_DEVICES += cf-xr186
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
+  KERNEL := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  IMAGE_SIZE := 65536k
+  KERNEL_IN_UBI := 1
+  IMAGES := sysupgrade.bin
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += comfast_cf-xr186
 
 define Device/confiabits_mt7981
   DEVICE_VENDOR := Confiabits
@@ -1275,7 +1296,7 @@ define Device/cudy_tr3000-256mb-v1
   IMAGE_SIZE := 235520k
   KERNEL_IN_UBI := 1
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
-  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
+  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware automount
 endef
 TARGET_DEVICES += cudy_tr3000-256mb-v1
 
@@ -1479,7 +1500,7 @@ define Device/cudy_wr3000p-v1
   IMAGE_SIZE := 65536k
   KERNEL_IN_UBI := 1
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
-  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
+  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware automount
 endef
 TARGET_DEVICES += cudy_wr3000p-v1
 
@@ -1489,7 +1510,7 @@ define Device/cudy_wr3000p-v1-ubootmod
   DEVICE_VARIANT := v1 (OpenWrt U-Boot layout)
   DEVICE_DTS := mt7981b-cudy-wr3000p-v1-ubootmod
   DEVICE_DTS_DIR := ../dts
-  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
+  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware automount
   UBINIZE_OPTS := -E 5
   BLOCKSIZE := 128k
   PAGESIZE := 2048
@@ -1521,7 +1542,7 @@ define Device/cudy_wbr3000uax-v1
   IMAGE_SIZE := 65536k
   KERNEL_IN_UBI := 1
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
-  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
+  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware automount
 endef
 TARGET_DEVICES += cudy_wbr3000uax-v1
 
@@ -1531,7 +1552,7 @@ define Device/cudy_wbr3000uax-v1-ubootmod
   DEVICE_VARIANT := v1 (OpenWrt U-Boot layout)
   DEVICE_DTS := mt7981b-cudy-wbr3000uax-v1-ubootmod
   DEVICE_DTS_DIR := ../dts
-  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
+  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware automount
   UBINIZE_OPTS := -E 5
   BLOCKSIZE := 128k
   PAGESIZE := 2048
@@ -1639,6 +1660,34 @@ define Device/elecom_wrc-x3000gs3
   DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
 endef
 TARGET_DEVICES += elecom_wrc-x3000gs3
+
+define Device/elecom_wrc-x6000gsd
+  DEVICE_VENDOR := ELECOM
+  DEVICE_MODEL := WRC-X6000GSD
+  DEVICE_DTS := mt7986b-elecom-wrc-x6000gsd
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_DTS_LOADADDR := 0x47000000
+  IMAGES += factory.bin
+  IMAGE/factory.bin := sysupgrade-tar | mstc-header 5.04(XZR.0)b90 YTC@ | \
+	elecom-product-header WRC-X6000GS
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware
+endef
+TARGET_DEVICES += elecom_wrc-x6000gsd
+
+define Device/elecom_wrc-x6000qs
+  DEVICE_VENDOR := ELECOM
+  DEVICE_MODEL := WRC-X6000QS
+  DEVICE_DTS := mt7986b-elecom-wrc-x6000qs
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_DTS_LOADADDR := 0x47000000
+  IMAGES += factory.bin
+  IMAGE/factory.bin := sysupgrade-tar | mstc-header 5.04(XZL.0)b90 COMD | \
+	elecom-product-header WRC-X6000QS
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware
+endef
+TARGET_DEVICES += elecom_wrc-x6000qs
 
 define Device/gatonetworks_gdsp
   DEVICE_VENDOR := GatoNetworks
@@ -2042,6 +2091,21 @@ define Device/jdcloud_re-cp-03
 endef
 TARGET_DEVICES += jdcloud_re-cp-03
 
+define Device/jiorouter_ax6000-jidu6101
+  DEVICE_VENDOR := JioRouter
+  DEVICE_MODEL := AX6000
+  DEVICE_VARIANT := JIDU6101
+  DEVICE_DTS := mt7986a-jiorouter-ax6000-jidu6101
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7916-firmware kmod-mt7986-firmware mt7986-wo-firmware automount
+  UBINIZE_OPTS := -E 5
+  UBOOTENV_IN_UBI := 1
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += jiorouter_ax6000-jidu6101
+
 define Device/kebidumei_ax3000-u22
   DEVICE_VENDOR := Kebidumei
   DEVICE_MODEL := AX3000-U22
@@ -2085,7 +2149,7 @@ TARGET_DEVICES += keenetic_kap-630
 
 define Device/keenetic_kn-1812-common
   DEVICE_DTS_DIR := ../dts
-  DEVICE_PACKAGES := kmod-mt7992-firmware kmod-usb3 \
+  DEVICE_PACKAGES := kmod-mt7992-firmware kmod-usb3 automount \
 		mt7988-2p5g-phy-firmware mt7988-wo-firmware
   UBINIZE_OPTS := -E 5
   BLOCKSIZE := 128k
@@ -2663,16 +2727,19 @@ endef
 TARGET_DEVICES += netgear_wax220
 
 define Device/netis_nx30v2
-  DEVICE_VENDOR := Netis
-  DEVICE_MODEL := NX30V2
+  DEVICE_VENDOR := netis
+  DEVICE_MODEL := NX30
+  DEVICE_VARIANT := V2
   DEVICE_ALT0_VENDOR := Netcore
-  DEVICE_ALT0_MODEL := POWER30AX
+  DEVICE_ALT0_MODEL := POWER 30AX
   DEVICE_ALT1_VENDOR := Netcore
-  DEVICE_ALT1_MODEL := N30PRO
+  DEVICE_ALT1_MODEL := N30 Pro
   DEVICE_ALT2_VENDOR := GWBN
   DEVICE_ALT2_MODEL := GW3001
   DEVICE_ALT3_VENDOR := GLC
   DEVICE_ALT3_MODEL := W7
+  DEVICE_ALT4_VENDOR := netis
+  DEVICE_ALT4_MODEL := MEX605
   DEVICE_DTS := mt7981b-netis-nx30v2
   DEVICE_DTS_DIR := ../dts
   DEVICE_DTC_FLAGS := --pad 4096
@@ -2861,10 +2928,8 @@ define Device/openwrt_one
 endef
 TARGET_DEVICES += openwrt_one
 
-define Device/qihoo_360t7
+define Device/qihoo_360t7-common
   DEVICE_VENDOR := Qihoo
-  DEVICE_MODEL := 360T7
-  DEVICE_DTS := mt7981b-qihoo-360t7
   DEVICE_DTS_DIR := ../dts
   UBINIZE_OPTS := -E 5
   BLOCKSIZE := 128k
@@ -2875,15 +2940,32 @@ define Device/qihoo_360t7
   KERNEL_INITRAMFS_SUFFIX := -recovery.itb
   KERNEL := kernel-bin | gzip
   KERNEL_INITRAMFS := kernel-bin | lzma | \
-	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | \
+	pad-to 64k
   IMAGE/sysupgrade.itb := append-kernel | \
-	fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | append-metadata
+	fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | \
+	append-metadata
   DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
-  ARTIFACTS := preloader.bin bl31-uboot.fip
-  ARTIFACT/preloader.bin := mt7981-bl2 spim-nand-ddr3
+  ARTIFACTS := bl31-uboot.fip preloader.bin
+endef
+
+define Device/qihoo_360t7
+  DEVICE_MODEL := 360T7
+  DEVICE_DTS := mt7981b-qihoo-360t7
+  $(call Device/qihoo_360t7-common)
   ARTIFACT/bl31-uboot.fip := mt7981-bl31-uboot qihoo_360t7
+  ARTIFACT/preloader.bin  := mt7981-bl2 spim-nand-ddr3-1866
 endef
 TARGET_DEVICES += qihoo_360t7
+
+define Device/qihoo_360t7-ubi
+  DEVICE_MODEL := 360T7 (UBI)
+  DEVICE_DTS := mt7981b-qihoo-360t7-ubi
+  $(call Device/qihoo_360t7-common)
+  ARTIFACT/bl31-uboot.fip := mt7981-bl31-uboot qihoo_360t7-ubi
+  ARTIFACT/preloader.bin  := mt7981-bl2 spim-nand-ubi-ddr3-1866
+endef
+TARGET_DEVICES += qihoo_360t7-ubi
 
 define Device/routerich_ax3000
   DEVICE_VENDOR := Routerich
@@ -2959,7 +3041,7 @@ define Device/routerich_be7200
 	fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-with-rootfs | \
 	pad-rootfs | append-metadata
   DEVICE_PACKAGES := mt7987-2p5g-phy-firmware kmod-mt7992-firmware \
-	 kmod-regulator-userspace-consumer kmod-usb3
+	 kmod-regulator-userspace-consumer kmod-usb3 automount
   ARTIFACTS := preloader.bin bl31-uboot.fip
   ARTIFACT/preloader.bin := mt7987-bl2 spim-nand0
   ARTIFACT/bl31-uboot.fip := mt7987-bl31-uboot routerich_be7200
@@ -3164,6 +3246,19 @@ define Device/tplink_eap683-lr
 endef
 TARGET_DEVICES += tplink_eap683-lr
 
+define Device/tplink_f65-v1
+  DEVICE_VENDOR := TP-Link
+  DEVICE_MODEL := F65
+  DEVICE_VARIANT := v1
+  DEVICE_DTS := mt7981b-tplink-f65v1
+  DEVICE_DTS_DIR := ../dts
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
+endef
+TARGET_DEVICES += tplink_f65-v1
+
 define Device/tplink_re6000xd
   DEVICE_VENDOR := TP-Link
   DEVICE_MODEL := RE6000XD
@@ -3329,7 +3424,7 @@ define Device/wavlink_wl-wn536ax6-a
   IMAGE_SIZE := 65536k
   KERNEL_INITRAMFS_SUFFIX := .itb
   KERNEL_IN_UBI := 1
-  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware
+  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware automount
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
 TARGET_DEVICES += wavlink_wl-wn536ax6-a
@@ -3399,6 +3494,44 @@ define Device/wavlink_wl-wn573hx3
   IMAGE/WN573HX3-sysupgrade.bin := append-kernel | pad-to 128k | append-rootfs | pad-rootfs | check-size | append-metadata
 endef
 TARGET_DEVICES += wavlink_wl-wn573hx3
+
+define Device/wavlink_wl-wnt100x3
+  DEVICE_VENDOR := WAVLINK
+  DEVICE_MODEL := WL-WNT100X3
+  DEVICE_DTS := mt7981b-wavlink-wl-wnt100x3
+  DEVICE_DTS_DIR := ../dts
+  IMAGE_SIZE := 65536k
+  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7981-firmware \
+	mt7981-wo-firmware kmod-hwmon-pwmfan automount
+  SUPPORTED_DEVICES += mediatek,mt7981-spim-snand-rfb
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += wavlink_wl-wnt100x3
+
+define Device/wavlink_wl-wnt100x3-ubootmod
+  DEVICE_VENDOR := WAVLINK
+  DEVICE_MODEL := WL-WNT100X3
+  DEVICE_VARIANT := (OpenWrt U-Boot layout)
+  DEVICE_DTS := mt7981b-wavlink-wl-wnt100x3-ubootmod
+  DEVICE_DTS_DIR := ../dts
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  IMAGES := sysupgrade.itb
+  KERNEL_INITRAMFS_SUFFIX := -recovery.itb
+  KERNEL := kernel-bin | gzip
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  IMAGE/sysupgrade.itb := append-kernel | \
+	fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | \
+	append-metadata
+  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7981-firmware \
+	mt7981-wo-firmware kmod-hwmon-pwmfan automount
+  ARTIFACTS := preloader.bin bl31-uboot.fip
+  ARTIFACT/preloader.bin := mt7981-bl2 spim-nand-ddr3
+  ARTIFACT/bl31-uboot.fip := mt7981-bl31-uboot wavlink_wl-wnt100x3
+endef
+TARGET_DEVICES += wavlink_wl-wnt100x3-ubootmod
 
 define Device/widelantech_wap430x
   DEVICE_VENDOR := Widelantech
@@ -3644,6 +3777,8 @@ TARGET_DEVICES += zbtlink_zbt-z8103ax
 define Device/zbtlink_zbt-z8103ax-c
   DEVICE_VENDOR := Zbtlink
   DEVICE_MODEL := ZBT-Z8103AX-C
+  DEVICE_ALT0_VENDOR := Zbtlink
+  DEVICE_ALT0_MODEL := ZBT-Z8103AX-D
   DEVICE_DTS := mt7981b-zbtlink-zbt-z8103ax-c
   DEVICE_DTS_DIR := ../dts
   DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
@@ -3658,6 +3793,25 @@ define Device/zbtlink_zbt-z8103ax-c
 endef
 TARGET_DEVICES += zbtlink_zbt-z8103ax-c
 
+define Device/zbtlink_zbt-z8106ax-s
+  DEVICE_VENDOR := Zbtlink
+  DEVICE_MODEL := ZBT-Z8106AX-S
+  SUPPORTED_DEVICES += zbtlink,z8106ax-2sim
+  DEVICE_DTS := mt7981b-zbtlink-zbt-z8106ax-s
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware \
+	kmod-usb3 kmod-usb-net-qmi-wwan kmod-usb-serial-option automount
+  KERNEL_IN_UBI := 1
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  IMAGE_SIZE := 65536k
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-ubi | check-size $$(IMAGE_SIZE)
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += zbtlink_zbt-z8106ax-s
+
 define Device/zbtlink_zbt-z8106ax-t
   DEVICE_VENDOR := Zbtlink
   DEVICE_MODEL := ZBT-Z8106AX-T
@@ -3666,7 +3820,8 @@ define Device/zbtlink_zbt-z8106ax-t
   SUPPORTED_DEVICES += zbtlink,z8106ax-2sim
   DEVICE_DTS := mt7981b-zbtlink-zbt-z8106ax-t
   DEVICE_DTS_DIR := ../dts
-  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware kmod-usb3 kmod-usb-net-qmi-wwan kmod-usb-serial-option
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware \
+	kmod-usb3 kmod-usb-net-qmi-wwan kmod-usb-serial-option automount
   KERNEL_IN_UBI := 1
   UBINIZE_OPTS := -E 5
   BLOCKSIZE := 128k
